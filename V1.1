@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Astro-Corp: Galactic Mining Tycoon</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #080c14;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.6);
+        }
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+        .glass-panel-interactive {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-panel-interactive:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+        /* Neon Lighting Shadows */
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+        }
+        .glow-amber {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+        }
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+        }
+        .text-glow-amber {
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        }
+
+        /* Asteroid Pulsing & Floating Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        .animate-float {
+            animation: floatSlow 5s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.4)); }
+            50% { filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.6)); }
+        }
+        .asteroid-glow {
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+
+        /* Click Particles Floating Up */
+        .click-particle {
+            position: absolute;
+            pointer-events: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            color: #38bdf8;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+            animation: floatAndFade 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            z-index: 50;
+        }
+        @keyframes floatAndFade {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -100px) scale(1.2); opacity: 0.9; }
+            100% { opacity: 0; transform: translate(-50%, -150px) scale(0.9); }
+        }
+
+        /* Supply Meteor Event Floating Across Screen */
+        @keyframes meteorFly {
+            0% { transform: translate(-100px, 10vh) rotate(0deg); }
+            100% { transform: translate(calc(100vw + 100px), 80vh) rotate(360deg); }
+        }
+        .supply-meteor {
+            animation: meteorFly 12s linear forwards;
+        }
+
+        /* Rock Debris Chip Particle Animation */
+        .rock-chip {
+            position: absolute;
+            pointer-events: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            animation: chipFly 0.7s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            z-index: 45;
+        }
+        @keyframes chipFly {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 relative selection:bg-cyan-500/30">
+
+    <!-- Background Stars Overlay -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950 to-black"></div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="relative z-10 flex flex-col min-h-screen max-w-7xl mx-auto px-3 sm:px-6 py-4">
+
+        <!-- TOP BAR / HEADER STICKY PANEL -->
+        <header class="glass-panel rounded-2xl p-4 mb-4 flex flex-col lg:flex-row items-center justify-between gap-4 border border-cyan-500/20 shadow-xl">
+            <!-- Brand & Rank -->
+            <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 font-orbitron font-black text-2xl text-white">
+                        🚀
+                    </div>
+                    <div>
+                        <h1 class="font-orbitron font-extrabold text-xl sm:text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400">
+                            ASTRO-CORP
+                        </h1>
+                        <div class="text-xs text-slate-400 font-medium flex items-center gap-2">
+                            <span>GALACTIC MINING TYCOON</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sound & Settings Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="btn-sound" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-cyan-400 border border-slate-700/60 transition active:scale-95" title="Toggle Sound FX">
+                        <svg id="icon-sound-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                        <svg id="icon-sound-off" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+                    </button>
+                    <button id="btn-stats" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition active:scale-95" title="Stats & Data Management">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Financial Metrics Dashboard -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:flex items-center gap-4 w-full lg:w-auto">
+                <!-- Current Cash -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2 flex flex-col min-w-[140px]">
+                    <span class="text-[10px] font-orbitron text-slate-400 tracking-wider">NET CREDITS</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-cyan-400 font-bold">$</span>
+                        <span id="display-cash" class="font-orbitron font-extrabold text-xl sm:text-2xl text-cyan-300 text-glow-cyan">0</span>
+                    </div>
+                </div>
+
+                <!-- Cash Per Second -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2 flex flex-col min-w-[140px]">
+                    <span class="text-[10px] font-orbitron text-slate-400 tracking-wider">REVENUE / SEC</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-emerald-400 font-bold">+$</span>
+                        <span id="display-cps" class="font-orbitron font-bold text-lg text-emerald-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Quantum Beacons -->
+                <div class="bg-slate-900/80 border border-cyan-500/40 rounded-xl px-4 py-2 flex flex-col min-w-[140px]">
+                    <span class="text-[10px] font-orbitron text-cyan-400 tracking-wider">QUANTUM BEACONS</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="display-beacons" class="font-orbitron font-bold text-lg text-cyan-300">📡 0</span>
+                        <span id="display-beacon-bonus" class="text-xs font-bold text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-500/40 text-glow-cyan">+0%</span>
+                    </div>
+                </div>
+
+                <!-- Dark Matter (Prestige Currency) -->
+                <div class="bg-slate-900/80 border border-purple-950/60 rounded-xl px-4 py-2 flex flex-col min-w-[140px] col-span-2 md:col-span-1">
+                    <span class="text-[10px] font-orbitron text-purple-400 tracking-wider">DARK MATTER</span>
+                    <div class="flex items-center justify-between">
+                        <span id="display-dm" class="font-orbitron font-bold text-lg text-purple-300">0 DM</span>
+                        <span id="display-multiplier" class="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">1x</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sparkline Mini Revenue Canvas -->
+            <div class="hidden xl:flex flex-col items-end gap-1">
+                <span class="text-[10px] font-orbitron text-slate-400">LIVE REVENUE TREND</span>
+                <canvas id="sparkline" width="120" height="32" class="rounded bg-slate-950/50 border border-slate-800/80"></canvas>
+            </div>
+        </header>
+
+        <!-- ACTIVE FRENZY NOTIFICATION BANNER (Hidden by default) -->
+        <div id="frenzy-banner" class="hidden mb-4 glass-panel p-3 rounded-xl border border-amber-500/50 bg-gradient-to-r from-amber-500/20 via-purple-600/20 to-cyan-500/20 flex items-center justify-between animate-pulse">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⚡</span>
+                <div>
+                    <h3 class="font-orbitron font-bold text-amber-300 text-sm">STARDUST FRENZY ACTIVE!</h3>
+                    <p class="text-xs text-amber-200/80">All generator profits multiplied by <span id="frenzy-multiplier-text" class="font-bold text-white">2x</span>!</p>
+                </div>
+            </div>
+            <div class="font-orbitron font-black text-xl text-amber-300" id="frenzy-timer">20.0s</div>
+        </div>
+
+        <!-- BEACON UNLOCKED CELEBRATORY TOAST BANNER -->
+        <div id="beacon-toast" class="hidden mb-4 glass-panel p-3 rounded-xl border border-cyan-400/80 bg-gradient-to-r from-cyan-950/90 via-sky-900/80 to-indigo-950/90 flex items-center justify-between shadow-lg shadow-cyan-500/20 animate-bounce">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">📡</span>
+                <div>
+                    <h3 id="beacon-toast-title" class="font-orbitron font-extrabold text-cyan-300 text-sm tracking-wider">BEACON UNLOCKED!</h3>
+                    <p id="beacon-toast-desc" class="text-xs text-cyan-100">Facility milestone reached! Global production boosted by +10%.</p>
+                </div>
+            </div>
+            <span class="text-xs font-orbitron font-bold text-cyan-400 bg-cyan-500/20 px-2.5 py-1 rounded-lg border border-cyan-400/40">+10% ALL OUTPUT</span>
+        </div>
+
+        <!-- MAIN WORKSPACE GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+            <!-- LEFT COLUMN: MINING CORE & GENERATORS (LG: 7 COLS) -->
+            <div class="lg:col-span-7 flex flex-col gap-5">
+
+                <!-- INTERACTIVE ROCKY ASTEROID MINING CORE PANEL -->
+                <div class="glass-panel rounded-2xl p-6 border border-cyan-500/20 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
+                    <!-- Left: Clickable Rocky Asteroid SVG -->
+                    <div class="relative flex-shrink-0 flex items-center justify-center w-44 h-44">
+                        <div id="mine-ripple" class="absolute inset-0 rounded-full bg-cyan-400/20 scale-110 opacity-0 transition-opacity duration-150 pointer-events-none"></div>
+                        <button id="btn-mine" class="relative w-40 h-40 rounded-full flex items-center justify-center cursor-pointer transition-transform active:scale-90 animate-float asteroid-glow focus:outline-none group" title="Click to Mine Mineral Core">
+                            <!-- Detailed Rocky Asteroid Vector Graphic -->
+                            <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
+                                <defs>
+                                    <radialGradient id="rockGrad" cx="35%" cy="35%" r="65%">
+                                        <stop offset="0%" stop-color="#64748b"/>
+                                        <stop offset="55%" stop-color="#334155"/>
+                                        <stop offset="100%" stop-color="#0f172a"/>
+                                    </radialGradient>
+                                    <linearGradient id="veinCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#22d3ee"/>
+                                        <stop offset="100%" stop-color="#0284c7"/>
+                                    </linearGradient>
+                                    <linearGradient id="veinGold" x1="0%" y1="100%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#fbbf24"/>
+                                        <stop offset="100%" stop-color="#d97706"/>
+                                    </linearGradient>
+                                </defs>
+                                <!-- Irregular Craggy Asteroid Body -->
+                                <polygon points="100,14 142,24 176,55 186,102 172,148 134,180 86,186 42,166 18,124 22,74 56,34" fill="url(#rockGrad)" stroke="#475569" stroke-width="3" stroke-linejoin="round"/>
+                                <!-- Craters & Depth Shading -->
+                                <ellipse cx="68" cy="64" rx="18" ry="13" transform="rotate(-20 68 64)" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                                <ellipse cx="136" cy="128" rx="22" ry="15" transform="rotate(15 136 128)" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                                <circle cx="132" cy="66" r="10" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                                <circle cx="72" cy="138" r="12" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                                <!-- Glowing Cyan Mineral Veins -->
+                                <path d="M56,34 L82,78 L112,92 L142,24" fill="none" stroke="url(#veinCyan)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18,124 L65,112 L95,142 L86,186" fill="none" stroke="url(#veinCyan)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <!-- Glowing Gold Mineral Veins -->
+                                <path d="M176,55 L130,96 L146,136 L172,148" fill="none" stroke="url(#veinGold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="96" cy="102" r="5" fill="#38bdf8" class="animate-ping"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Right: Mining Stats & Click Boost Info -->
+                    <div class="flex-1 text-center md:text-left space-y-3">
+                        <div class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-orbitron text-xs font-semibold">
+                            MANUAL EXTRACTION NODE
+                        </div>
+                        <h2 class="font-orbitron font-extrabold text-2xl text-slate-100">
+                            MINING CORE #01
+                        </h2>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Click the mineral core to extract localized credit deposits. Upgrade manual lasers to boost per-click earnings.
+                        </p>
+                        <div class="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4">
+                            <div class="bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl">
+                                <div class="text-[10px] font-orbitron text-slate-400">PER CLICK</div>
+                                <div id="display-click-power" class="font-orbitron font-bold text-cyan-300 text-lg">+$1</div>
+                            </div>
+                            <button id="btn-upgrade-click" class="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-orbitron font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex flex-col items-center">
+                                <span>UPGRADE LASER</span>
+                                <span id="display-click-cost" class="text-[10px] text-cyan-200 font-normal">$25</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GENERATORS LIST CONTAINER -->
+                <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800 flex flex-col gap-4">
+                    
+                    <!-- Header with Bulk Buy Toggles -->
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                        <div>
+                            <h3 class="font-orbitron font-extrabold text-lg text-slate-100 flex items-center gap-2">
+                                <span>MINING FACILITIES</span>
+                                <span class="text-xs font-normal text-slate-400 font-sans">(Automated Tiers)</span>
+                            </h3>
+                        </div>
+
+                        <!-- Bulk Buy Mode Selectors -->
+                        <div class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-orbitron w-full sm:w-auto justify-center">
+                            <span class="text-slate-400 px-2 text-[10px]">BUY:</span>
+                            <button data-buy="1" class="buy-mode-btn px-3 py-1 rounded-lg bg-cyan-500 text-slate-950 font-bold transition">x1</button>
+                            <button data-buy="10" class="buy-mode-btn px-3 py-1 rounded-lg hover:bg-slate-800 text-slate-300 transition">x10</button>
+                            <button data-buy="100" class="buy-mode-btn px-3 py-1 rounded-lg hover:bg-slate-800 text-slate-300 transition">x100</button>
+                            <button data-buy="max" class="buy-mode-btn px-3 py-1 rounded-lg hover:bg-slate-800 text-slate-300 transition">MAX</button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Generator Tiers Container -->
+                    <div id="generators-container" class="flex flex-col gap-3">
+                        <!-- Generator Cards injected via JS -->
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: MULTI-TAB NAVIGATION PANEL (LG: 5 COLS) -->
+            <div class="lg:col-span-5 flex flex-col gap-4">
+                
+                <!-- Tab Selector Buttons -->
+                <div class="glass-panel p-1.5 rounded-2xl flex items-center gap-1 border border-slate-800 text-xs font-orbitron font-bold">
+                    <button data-tab="managers" class="tab-btn flex-1 py-3 rounded-xl bg-cyan-500 text-slate-950 shadow-md transition flex items-center justify-center gap-1.5">
+                        <span>👔</span>
+                        <span>MANAGERS</span>
+                    </button>
+                    <button data-tab="upgrades" class="tab-btn flex-1 py-3 rounded-xl hover:bg-slate-800/80 text-slate-400 transition flex items-center justify-center gap-1.5">
+                        <span>🔬</span>
+                        <span>TECH</span>
+                    </button>
+                    <button data-tab="prestige" class="tab-btn flex-1 py-3 rounded-xl hover:bg-slate-800/80 text-slate-400 transition flex items-center justify-center gap-1.5">
+                        <span>🌌</span>
+                        <span>REBIRTH</span>
+                    </button>
+                </div>
+
+                <!-- TAB CONTENT 1: MANAGERS & AUTOMATION -->
+                <div id="tab-content-managers" class="tab-page glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="font-orbitron font-bold text-cyan-400 text-base">EXECUTIVE MANAGERS</h3>
+                            <p class="text-xs text-slate-400">Hire managers to automate production cycles continuously.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="managers-list" class="flex flex-col gap-3 max-h-[550px] overflow-y-auto pr-1">
+                        <!-- Dynamic Manager Cards -->
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 2: TECH UPGRADES -->
+                <div id="tab-content-upgrades" class="tab-page hidden glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="font-orbitron font-bold text-cyan-400 text-base">RESEARCH & TECH</h3>
+                            <p class="text-xs text-slate-400">Unlock permanent global and facility efficiency upgrades.</p>
+                        </div>
+                    </div>
+
+                    <div id="upgrades-list" class="flex flex-col gap-3 max-h-[550px] overflow-y-auto pr-1">
+                        <!-- Dynamic Upgrade Cards -->
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 3: PRESTIGE / REBIRTH (GALACTIC EXPANSION) -->
+                <div id="tab-content-prestige" class="tab-page hidden glass-panel rounded-2xl p-5 border border-purple-900/40 space-y-5 bg-gradient-to-b from-purple-950/20 to-slate-900/80">
+                    <div>
+                        <div class="inline-block px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-orbitron text-[10px] font-bold mb-2">
+                            GALACTIC CORPORATE REBIRTH
+                        </div>
+                        <h3 class="font-orbitron font-extrabold text-xl text-slate-100">
+                            IPO & DARK MATTER EXPANSION
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed mt-1">
+                            Reset your current mining facilities and credit balance to earn permanent <strong class="text-purple-400">Dark Matter Shares</strong>. Each share grants +5% all revenue!
+                        </p>
+                    </div>
+
+                    <!-- Rebirth Status Box -->
+                    <div class="bg-slate-900/90 border border-purple-800/50 p-4 rounded-xl space-y-3">
+                        <div class="flex justify-between text-xs font-orbitron">
+                            <span class="text-slate-400">CURRENT DM SHARES:</span>
+                            <span id="prestige-current-dm" class="text-purple-300 font-bold">0 DM</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-orbitron">
+                            <span class="text-slate-400">CURRENT MULTIPLIER:</span>
+                            <span id="prestige-current-multi" class="text-amber-400 font-bold">1.00x</span>
+                        </div>
+                        <div class="border-t border-slate-800 pt-2 flex justify-between text-xs font-orbitron">
+                            <span class="text-slate-400">DM UPON REBIRTH:</span>
+                            <span id="prestige-gain-dm" class="text-purple-400 font-extrabold text-sm">+0 DM</span>
+                        </div>
+
+                        <button id="btn-rebirth" class="w-full py-3 mt-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-orbitron font-extrabold text-sm rounded-xl shadow-lg shadow-purple-500/30 transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
+                            INITIATE GALACTIC REBIRTH
+                        </button>
+                    </div>
+
+                    <!-- Dark Matter Perks Skill Tree -->
+                    <div class="space-y-3 pt-2">
+                        <h4 class="font-orbitron font-bold text-sm text-purple-300 border-b border-purple-900/40 pb-2">
+                            PRESTIGE TECH TREE (Spend DM)
+                        </h4>
+                        <div id="prestige-perks-list" class="flex flex-col gap-3">
+                            <!-- Dynamic Perks -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- STATS & SAVE MANAGEMENT MODAL (Hidden by default) -->
+    <div id="modal-stats" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel p-6 rounded-3xl max-w-lg w-full border border-cyan-500/30 space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-orbitron font-extrabold text-lg text-cyan-300 flex items-center gap-2">
+                    <span>📊</span> CORPORATE ARCHIVES & DATA
+                </h3>
+                <button id="btn-close-stats" class="text-slate-400 hover:text-white font-bold text-xl px-2">✕</button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-3 text-xs font-orbitron">
+                <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                    <div class="text-slate-400">LIFETIME CREDITS</div>
+                    <div id="stat-lifetime-cash" class="text-sm font-bold text-cyan-300 mt-1">$0</div>
+                </div>
+                <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                    <div class="text-slate-400">TOTAL MANUAL CLICKS</div>
+                    <div id="stat-total-clicks" class="text-sm font-bold text-emerald-400 mt-1">0</div>
+                </div>
+                <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                    <div class="text-slate-400">TOTAL REBIRTHS</div>
+                    <div id="stat-total-prestiges" class="text-sm font-bold text-purple-400 mt-1">0</div>
+                </div>
+                <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                    <div class="text-slate-400">TIME PLAYED</div>
+                    <div id="stat-time-played" class="text-sm font-bold text-amber-400 mt-1">0m</div>
+                </div>
+            </div>
+
+            <!-- Data Management Buttons -->
+            <div class="space-y-3 pt-2">
+                <div class="flex gap-2">
+                    <button id="btn-export-save" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-orbitron text-xs font-bold rounded-xl border border-slate-700 transition">EXPORT SAVE</button>
+                    <button id="btn-import-save" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-purple-300 font-orbitron text-xs font-bold rounded-xl border border-slate-700 transition">IMPORT SAVE</button>
+                </div>
+                <button id="btn-hard-reset" class="w-full py-2.5 bg-red-950/60 hover:bg-red-900 text-red-300 font-orbitron text-xs font-bold rounded-xl border border-red-800/60 transition">HARD RESET ALL DATA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OFFLINE EARNINGS WELCOME BACK MODAL -->
+    <div id="modal-offline" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel p-6 rounded-3xl max-w-md w-full border border-cyan-500/40 text-center space-y-5">
+            <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-3xl mx-auto border border-cyan-500/30">
+                🛰️
+            </div>
+            <div>
+                <span class="text-xs font-orbitron text-cyan-400 tracking-widest">OFFLINE REVENUE REPORT</span>
+                <h3 class="font-orbitron font-extrabold text-2xl text-slate-100 mt-1">WELCOME BACK, PILOT!</h3>
+                <p class="text-xs text-slate-300 mt-2">
+                    While you were away, your automated mining operations generated:
+                </p>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-2xl border border-cyan-500/30">
+                <div id="offline-cash-display" class="font-orbitron font-black text-3xl text-emerald-400 text-glow-cyan">+$0</div>
+                <div id="offline-time-display" class="text-xs text-slate-400 font-orbitron mt-1">Away for 0 minutes</div>
+            </div>
+            <button id="btn-claim-offline" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-orbitron font-black text-sm rounded-xl shadow-lg shadow-cyan-500/30 transition active:scale-95">
+                COLLECT CREDITS
+            </button>
+        </div>
+    </div>
+
+    <!-- CUSTOM IN-GAME DIALOG MODAL (Replaces alert / confirm / prompt) -->
+    <div id="modal-dialog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel p-6 rounded-3xl max-w-md w-full border border-cyan-500/40 space-y-4">
+            <h3 id="dialog-title" class="font-orbitron font-extrabold text-lg text-cyan-300">SYSTEM NOTICE</h3>
+            <p id="dialog-message" class="text-xs text-slate-200 leading-relaxed whitespace-pre-line"></p>
+            <textarea id="dialog-input" rows="3" class="hidden w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500" placeholder="Paste data string here..."></textarea>
+            <div class="flex justify-end gap-2 pt-2">
+                <button id="dialog-cancel" class="hidden px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-orbitron text-xs font-bold transition">CANCEL</button>
+                <button id="dialog-confirm" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-orbitron text-xs font-black transition">CONFIRM</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- GAME SCRIPT & LOGIC ENGINE -->
+    <script>
+        /**
+         * SYNTHESIZED AUDIO ENGINE (Web Audio API)
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                return this.muted;
+            }
+
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.06);
+
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.06);
+            }
+
+            playBuy() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.04);
+
+                    gain.gain.setValueAtTime(0.12, now + i * 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.08);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.04);
+                    osc.stop(now + i * 0.04 + 0.08);
+                });
+            }
+
+            playUpgrade() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.05);
+
+                    gain.gain.setValueAtTime(0.08, now + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.1);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.05);
+                    osc.stop(now + i * 0.04 + 0.1);
+                });
+            }
+
+            playBeacon() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.06);
+
+                    gain.gain.setValueAtTime(0.18, now + i * 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.15);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.06);
+                    osc.stop(now + i * 0.06 + 0.15);
+                });
+            }
+
+            playMeteor() {
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.4);
+
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            }
+        }
+
+        const sounds = new SoundEngine();
+
+        /**
+         * NUMBER FORMATTING HELPER
+         */
+        const SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg"];
+
+        function formatNumber(num) {
+            if (num < 0) return "0";
+            if (num < 1000) return num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+            const i = Math.floor(Math.log10(num) / 3);
+            if (i >= SUFFIXES.length) return num.toExponential(2);
+            const formatted = (num / Math.pow(10, i * 3)).toFixed(2);
+            return `${formatted} ${SUFFIXES[i]}`;
+        }
+
+        /**
+         * GAME DATA CONFIGURATIONS
+         */
+        const GENERATORS_CONFIG = [
+            { id: 'gen1', name: 'Rover Drone', icon: '🤖', baseCost: 15, baseIncome: 2, baseSpeed: 1.0 },
+            { id: 'gen2', name: 'Lunar Drill', icon: '⛏️', baseCost: 100, baseIncome: 15, baseSpeed: 1.5 },
+            { id: 'gen3', name: 'Asteroid Harvester', icon: '🛰️', baseCost: 1100, baseIncome: 120, baseSpeed: 2.0 },
+            { id: 'gen4', name: 'Orbital Refinery', icon: '🏭', baseCost: 12000, baseIncome: 1200, baseSpeed: 2.5 },
+            { id: 'gen5', name: 'Dyson Collector', icon: '☀️', baseCost: 130000, baseIncome: 12500, baseSpeed: 3.5 },
+            { id: 'gen6', name: 'Singularity Tap', icon: '🌀', baseCost: 1400000, baseIncome: 140000, baseSpeed: 4.5 },
+            { id: 'gen7', name: 'Trade Hub', icon: '🌌', baseCost: 20000000, baseIncome: 1800000, baseSpeed: 6.0 },
+            { id: 'gen8', name: 'Multiverse Extractor', icon: '⚛️', baseCost: 330000000, baseIncome: 25000000, baseSpeed: 8.0 }
+        ];
+
+        const UPGRADES_CONFIG = [
+            { id: 'upg1', name: 'Titanium Drill Bits', desc: 'Rover Drones produce 2x profit', cost: 100, targetGen: 'gen1', multiplier: 2 },
+            { id: 'upg2', name: 'Diamond Cutter Arrays', desc: 'Lunar Drills produce 2x profit', cost: 1000, targetGen: 'gen2', multiplier: 2 },
+            { id: 'upg3', name: 'Plasma Cutters', desc: 'Asteroid Harvesters produce 2x profit', cost: 11000, targetGen: 'gen3', multiplier: 2 },
+            { id: 'upg4', name: 'AI Logistics Drone Net', desc: 'Global +50% income across all facilities', cost: 50000, isGlobal: true, multiplier: 1.5 },
+            { id: 'upg5', name: 'Laser Overcharge', desc: 'Manual clicks gain +3% of your total CPS', cost: 25000 },
+            { id: 'upg6', name: 'Sub-Zero Coolers', desc: 'Orbital Refineries produce 2x profit', cost: 200000, targetGen: 'gen4', multiplier: 2 },
+            { id: 'upg7', name: 'Solar Flares Harness', desc: 'Dyson Collectors produce 2x profit', cost: 2500000, targetGen: 'gen5', multiplier: 2 },
+            { id: 'upg8', name: 'Quantum Core Synergies', desc: 'Global income 2x boost', cost: 10000000, isGlobal: true, multiplier: 2 }
+        ];
+
+        const PRESTIGE_PERKS_CONFIG = [
+            { id: 'perk_warp', name: 'Warp Drive Logistics', desc: '-10% Generator base cycle speeds per level', baseCost: 5, maxLvl: 5 },
+            { id: 'perk_grant', name: 'Corporate Seed Grant', desc: 'Start new runs with +$5,000 bonus credits per level', baseCost: 10, maxLvl: 5 },
+            { id: 'perk_nano', name: 'Nanotech Fabrication', desc: '-10% Facility upgrade costs per level', baseCost: 15, maxLvl: 5 },
+            { id: 'perk_frenzy', name: 'Dark Matter Overdrive', desc: '+5s Stardust Frenzy duration and +1x multiplier', baseCost: 25, maxLvl: 3 }
+        ];
+
+        /**
+         * GAME STATE MODEL
+         */
+        let state = {
+            cash: 0,
+            lifetimeCash: 0,
+            clickPower: 1,
+            clickLevel: 1,
+            clickCost: 10,
+            totalClicks: 0,
+            totalPrestiges: 0,
+            timePlayed: 0,
+            darkMatter: 0,
+            lastSaveTime: Date.now(),
+            
+            // Generator levels & automated managers
+            generators: {},
+            managers: {},
+            upgrades: {},
+            perks: {}
+        };
+
+        let buyMode = '1'; // '1', '10', '100', 'max'
+        let frenzyActive = false;
+        let frenzyTimeLeft = 0;
+        let frenzyMultiplier = 2;
+        let sparklineData = new Array(20).fill(0);
+        let beaconToastTimer = null;
+
+        /**
+         * CUSTOM NON-BLOCKING DIALOG SYSTEM
+         */
+        function showDialog({ title, message, showCancel = false, showInput = false, inputValue = '', onConfirm = null }) {
+            const modal = document.getElementById('modal-dialog');
+            const titleEl = document.getElementById('dialog-title');
+            const msgEl = document.getElementById('dialog-message');
+            const inputEl = document.getElementById('dialog-input');
+            const cancelBtn = document.getElementById('dialog-cancel');
+            const confirmBtn = document.getElementById('dialog-confirm');
+
+            titleEl.innerText = title || 'SYSTEM NOTICE';
+            msgEl.innerText = message || '';
+
+            if (showInput) {
+                inputEl.classList.remove('hidden');
+                inputEl.value = inputValue;
+            } else {
+                inputEl.classList.add('hidden');
+                inputEl.value = '';
+            }
+
+            if (showCancel) {
+                cancelBtn.classList.remove('hidden');
+            } else {
+                cancelBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+
+            cancelBtn.onclick = () => {
+                modal.classList.add('hidden');
+            };
+
+            confirmBtn.onclick = () => {
+                const val = inputEl.value;
+                modal.classList.add('hidden');
+                if (onConfirm) onConfirm(val);
+            };
+        }
+
+        /**
+         * BEACON CALCULATIONS
+         */
+        function getMilestonesForLevel(lvl) {
+            if (lvl < 10) return 0;
+            if (lvl < 25) return 1;
+            if (lvl < 50) return 2;
+            if (lvl < 100) return 3;
+            return 4 + Math.floor((lvl - 100) / 50);
+        }
+
+        function getNextMilestoneLevel(lvl) {
+            const milestoneThresholds = [10, 25, 50, 100];
+            for (let m of milestoneThresholds) {
+                if (m > lvl) return m;
+            }
+            return 100 + (Math.floor((lvl - 100) / 50) + 1) * 50;
+        }
+
+        function getPrevMilestoneLevel(lvl) {
+            if (lvl < 10) return 0;
+            if (lvl < 25) return 10;
+            if (lvl < 50) return 25;
+            if (lvl < 100) return 50;
+            return 100 + Math.floor((lvl - 100) / 50) * 50;
+        }
+
+        function getTotalBeacons() {
+            let beacons = 0;
+            GENERATORS_CONFIG.forEach(g => {
+                const lvl = state.generators[g.id] ? state.generators[g.id].level : 0;
+                beacons += getMilestonesForLevel(lvl);
+            });
+            return beacons;
+        }
+
+        function getBeaconMultiplier() {
+            return 1 + getTotalBeacons() * 0.10;
+        }
+
+        function showBeaconNotification(facilityName, count, total) {
+            const toast = document.getElementById('beacon-toast');
+            document.getElementById('beacon-toast-title').innerText = `📡 ${count > 1 ? `${count} BEACONS` : 'BEACON'} UNLOCKED!`;
+            document.getElementById('beacon-toast-desc').innerText = `${facilityName} reached a milestone! You now have ${total} Beacon${total > 1 ? 's' : ''} (+${total * 10}% output boost).`;
+            
+            toast.classList.remove('hidden');
+            if (beaconToastTimer) clearTimeout(beaconToastTimer);
+            beaconToastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4500);
+        }
+
+        // Helper to calculate active click power (base + % of CPS) with Beacons and Math.ceil rounding
+        function getEffectiveClickPower() {
+            const cpsBonus = state.upgrades['upg5'] ? getGlobalCPS() * 0.03 : 0;
+            const base = state.clickPower + cpsBonus;
+            const total = base * getBeaconMultiplier();
+            return Math.ceil(total);
+        }
+
+        // Initialize state objects
+        function initInitialState() {
+            GENERATORS_CONFIG.forEach(g => {
+                if (!state.generators[g.id]) state.generators[g.id] = { level: 0, progress: 0, running: false };
+                if (state.managers[g.id] === undefined) state.managers[g.id] = false;
+            });
+            UPGRADES_CONFIG.forEach(u => {
+                if (state.upgrades[u.id] === undefined) state.upgrades[u.id] = false;
+            });
+            PRESTIGE_PERKS_CONFIG.forEach(p => {
+                if (state.perks[p.id] === undefined) state.perks[p.id] = 0;
+            });
+        }
+        initInitialState();
+
+        /**
+         * CORE MATHEMATICAL CALCULATIONS
+         */
+
+        // Get cost for N levels of a generator
+        function getGeneratorCost(genId, count = 1) {
+            const config = GENERATORS_CONFIG.find(g => g.id === genId);
+            const currentLvl = state.generators[genId].level;
+            const costMult = 1.15;
+            
+            // Perk reduction
+            const discount = 1 - (state.perks['perk_nano'] || 0) * 0.10;
+
+            if (count === 'max') {
+                // Calculate max affordable
+                let maxCount = 0;
+                let tempCost = 0;
+                let c = config.baseCost * Math.pow(costMult, currentLvl) * discount;
+                let available = state.cash;
+                while (available >= c) {
+                    available -= c;
+                    tempCost += c;
+                    maxCount++;
+                    c = config.baseCost * Math.pow(costMult, currentLvl + maxCount) * discount;
+                    if (maxCount >= 1000) break;
+                }
+                return { totalCost: Math.max(config.baseCost * discount, tempCost), count: Math.max(1, maxCount) };
+            }
+
+            let totalCost = 0;
+            for (let i = 0; i < count; i++) {
+                totalCost += config.baseCost * Math.pow(costMult, currentLvl + i) * discount;
+            }
+            return { totalCost, count };
+        }
+
+        // Get total CPS (Cash Per Second) across all facilities
+        function getGlobalCPS() {
+            let totalCPS = 0;
+
+            // Global Multiplier from Dark Matter, Beacons & Upgrades
+            let globalMult = 1.0;
+            globalMult += state.darkMatter * 0.05; // Each DM = +5%
+            globalMult *= getBeaconMultiplier();  // Each Beacon = +10%
+
+            UPGRADES_CONFIG.forEach(u => {
+                if (u.isGlobal && state.upgrades[u.id]) globalMult *= u.multiplier;
+            });
+
+            if (frenzyActive) globalMult *= frenzyMultiplier;
+
+            GENERATORS_CONFIG.forEach(g => {
+                const lvl = state.generators[g.id].level;
+                if (lvl > 0) {
+                    let genIncome = g.baseIncome * lvl;
+
+                    // Upgrade Multipliers
+                    UPGRADES_CONFIG.forEach(u => {
+                        if (u.targetGen === g.id && state.upgrades[u.id]) {
+                            genIncome *= u.multiplier;
+                        }
+                    });
+
+                    // Cycle Speed / CPS conversion
+                    let speed = g.baseSpeed * Math.max(0.5, 1 - (state.perks['perk_warp'] || 0) * 0.10);
+                    let cps = genIncome / speed;
+                    totalCPS += cps;
+                }
+            });
+
+            return Math.ceil(totalCPS * globalMult);
+        }
+
+        /**
+         * RENDER & UI UPDATES
+         */
+        function renderUI() {
+            const cps = getGlobalCPS();
+            const beacons = getTotalBeacons();
+            const beaconBonusPercent = Math.round(beacons * 10);
+
+            // Financial Dashboard
+            document.getElementById('display-cash').innerText = formatNumber(state.cash);
+            document.getElementById('display-cps').innerText = formatNumber(cps);
+            document.getElementById('display-beacons').innerText = `📡 ${beacons}`;
+            document.getElementById('display-beacon-bonus').innerText = `+${beaconBonusPercent}%`;
+            document.getElementById('display-dm').innerText = `${formatNumber(state.darkMatter)} DM`;
+            document.getElementById('display-multiplier').innerText = `${(1 + state.darkMatter * 0.05).toFixed(2)}x`;
+
+            // Manual Mining Laser Upgrade Button
+            const activeClickPower = getEffectiveClickPower();
+            document.getElementById('display-click-power').innerText = `+$${formatNumber(activeClickPower)}`;
+            document.getElementById('display-click-cost').innerText = `$${formatNumber(state.clickCost)}`;
+            document.getElementById('btn-upgrade-click').disabled = state.cash < state.clickCost;
+
+            // Render Generator List
+            const genContainer = document.getElementById('generators-container');
+            genContainer.innerHTML = '';
+
+            GENERATORS_CONFIG.forEach(g => {
+                const genState = state.generators[g.id];
+                const isAutomated = state.managers[g.id];
+                const targetCount = buyMode === 'max' ? 'max' : parseInt(buyMode);
+                const { totalCost, count } = getGeneratorCost(g.id, targetCount);
+
+                // Calculate exact cycle speed
+                const speed = (g.baseSpeed * Math.max(0.5, 1 - (state.perks['perk_warp'] || 0) * 0.10)).toFixed(1);
+
+                // Next Beacon milestone thresholds calculation
+                const nextMilestone = getNextMilestoneLevel(genState.level);
+                const prevMilestone = getPrevMilestoneLevel(genState.level);
+                const milestoneRange = Math.max(1, nextMilestone - prevMilestone);
+                const milestoneProgress = Math.min(100, Math.max(0, ((genState.level - prevMilestone) / milestoneRange) * 100));
+
+                const card = document.createElement('div');
+                card.className = `glass-panel-interactive rounded-xl p-3 sm:p-4 flex flex-col gap-3 border ${genState.level > 0 ? 'border-cyan-500/30' : 'border-slate-800 opacity-80'}`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-xl">
+                                ${g.icon}
+                            </div>
+                            <div>
+                                <div class="font-orbitron font-bold text-sm text-slate-100 flex items-center gap-2 flex-wrap">
+                                    <span>${g.name}</span>
+                                    <span class="text-xs text-cyan-400 font-semibold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">Lvl ${genState.level}</span>
+                                    ${isAutomated 
+                                        ? `<span class="text-[10px] text-emerald-300 bg-emerald-950/80 border border-emerald-500/50 px-2 py-0.5 rounded font-bold flex items-center gap-1">🤖 AUTOMATED</span>` 
+                                        : `<span class="text-[10px] text-amber-300 bg-amber-950/80 border border-amber-500/40 px-2 py-0.5 rounded font-bold">👆 MANUAL</span>`
+                                    }
+                                </div>
+                                <div class="text-[11px] text-slate-400 font-medium">
+                                    +$${formatNumber(Math.ceil((g.baseIncome * Math.max(1, genState.level) * getBeaconMultiplier()) / speed))}/sec <span class="text-slate-500">(${speed}s cycle)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buy Button -->
+                        <button data-buy-gen="${g.id}" class="px-4 py-2 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-slate-950 font-orbitron font-black text-xs rounded-xl shadow-md transition active:scale-95 disabled:opacity-30 disabled:pointer-events-none flex flex-col items-center min-w-[100px]" ${state.cash < totalCost ? 'disabled' : ''}>
+                            <span>BUY x${count}</span>
+                            <span class="text-[10px] text-slate-900 font-bold">$${formatNumber(totalCost)}</span>
+                        </button>
+                    </div>
+
+                    <!-- Progress Bar & Manual Trigger Action -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-[10px] font-orbitron text-slate-400">
+                            <span>PROGRESS ${genState.running ? '⚡ RUNNING' : 'IDLE'}</span>
+                            <span class="text-cyan-400 font-semibold">NEXT BEACON: ${genState.level}/${nextMilestone}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <!-- Main Cycle Bar -->
+                            <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800 relative cursor-pointer group" data-click-gen="${g.id}">
+                                <div class="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-indigo-500 transition-all duration-75" style="width: ${genState.progress}%"></div>
+                            </div>
+
+                            <!-- Manual Run Button if not automated -->
+                            ${!isAutomated ? `
+                                <button data-run-gen="${g.id}" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/50 text-amber-300 font-orbitron font-bold text-[10px] rounded-lg transition shrink-0 disabled:opacity-40" ${genState.level === 0 || genState.running ? 'disabled' : ''}>
+                                    ${genState.running ? 'RUNNING...' : 'EXTRACT'}
+                                </button>
+                            ` : ''}
+                        </div>
+                        <!-- Beacon Milestone Sub-Bar -->
+                        <div class="w-full h-1 bg-slate-950 rounded-full overflow-hidden" title="Progress towards next Beacon milestone">
+                            <div class="h-full bg-cyan-400/90 shadow-[0_0_8px_rgba(6,182,212,0.8)]" style="width: ${milestoneProgress}%"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Add Manual Run Click handler for bar & button
+                const triggerManualRun = () => {
+                    if (genState.level > 0 && !isAutomated && !genState.running) {
+                        genState.running = true;
+                        genState.progress = 0.1;
+                    }
+                };
+
+                const progressElement = card.querySelector(`[data-click-gen="${g.id}"]`);
+                if (progressElement) progressElement.onclick = triggerManualRun;
+
+                const runBtn = card.querySelector(`[data-run-gen="${g.id}"]`);
+                if (runBtn) runBtn.onclick = triggerManualRun;
+
+                // Add Buy listener
+                card.querySelector(`[data-buy-gen="${g.id}"]`).onclick = () => {
+                    if (state.cash >= totalCost) {
+                        const oldBeacons = getTotalBeacons();
+                        state.cash -= totalCost;
+                        genState.level += count;
+                        
+                        // Check for new Beacon unlocks
+                        const newBeacons = getTotalBeacons();
+                        if (newBeacons > oldBeacons) {
+                            const gained = newBeacons - oldBeacons;
+                            sounds.playBeacon();
+                            showBeaconNotification(g.name, gained, newBeacons);
+                        } else {
+                            sounds.playBuy();
+                        }
+
+                        // Auto start running cycle if automated
+                        if (state.managers[g.id]) {
+                            genState.running = true;
+                        }
+                        renderUI();
+                    }
+                };
+
+                genContainer.appendChild(card);
+            });
+
+            // Render Managers Tab
+            const managersList = document.getElementById('managers-list');
+            managersList.innerHTML = '';
+
+            GENERATORS_CONFIG.forEach(g => {
+                const cost = g.baseCost * 15;
+                const hired = state.managers[g.id];
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-3";
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-2xl">${g.icon}</div>
+                        <div>
+                            <div class="font-orbitron font-bold text-xs text-slate-200">${g.name} Executive AI</div>
+                            <div class="text-[10px] text-slate-400">Automates ${g.name} extraction continuously</div>
+                        </div>
+                    </div>
+                    <button data-hire="${g.id}" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-orbitron font-bold text-xs rounded-lg transition disabled:opacity-40 disabled:pointer-events-none" ${hired || state.cash < cost ? 'disabled' : ''}>
+                        ${hired ? 'HIRED ✓' : `HIRE ($${formatNumber(cost)})`}
+                    </button>
+                `;
+                card.querySelector(`[data-hire="${g.id}"]`).onclick = () => {
+                    if (!hired && state.cash >= cost) {
+                        state.cash -= cost;
+                        state.managers[g.id] = true;
+                        // Immediately set running state when manager is hired
+                        if (state.generators[g.id] && state.generators[g.id].level > 0) {
+                            state.generators[g.id].running = true;
+                        }
+                        sounds.playUpgrade();
+                        renderUI();
+                    }
+                };
+                managersList.appendChild(card);
+            });
+
+            // Render Tech Upgrades Tab
+            const upgradesList = document.getElementById('upgrades-list');
+            upgradesList.innerHTML = '';
+
+            UPGRADES_CONFIG.forEach(u => {
+                const bought = state.upgrades[u.id];
+                const card = document.createElement('div');
+                card.className = `bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-3 ${bought ? 'opacity-50' : ''}`;
+                card.innerHTML = `
+                    <div>
+                        <div class="font-orbitron font-bold text-xs text-cyan-300">${u.name}</div>
+                        <div class="text-[10px] text-slate-400">${u.desc}</div>
+                    </div>
+                    <button data-upg="${u.id}" class="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-slate-950 font-orbitron font-bold text-xs rounded-lg transition disabled:opacity-30 disabled:pointer-events-none shrink-0" ${bought || state.cash < u.cost ? 'disabled' : ''}>
+                        ${bought ? 'UNLOCKED ✓' : `$${formatNumber(u.cost)}`}
+                    </button>
+                `;
+                card.querySelector(`[data-upg="${u.id}"]`).onclick = () => {
+                    if (!bought && state.cash >= u.cost) {
+                        state.cash -= u.cost;
+                        state.upgrades[u.id] = true;
+                        sounds.playUpgrade();
+                        renderUI();
+                    }
+                };
+                upgradesList.appendChild(card);
+            });
+
+            // Render Prestige Rebirth Details
+            const potentialDM = Math.floor(15 * Math.sqrt(state.lifetimeCash / 1e7));
+            document.getElementById('prestige-current-dm').innerText = `${formatNumber(state.darkMatter)} DM`;
+            document.getElementById('prestige-current-multi').innerText = `${(1 + state.darkMatter * 0.05).toFixed(2)}x`;
+            document.getElementById('prestige-gain-dm').innerText = `+${formatNumber(potentialDM)} DM`;
+            document.getElementById('btn-rebirth').disabled = potentialDM <= 0;
+
+            // Render Prestige Perks
+            const perksList = document.getElementById('prestige-perks-list');
+            perksList.innerHTML = '';
+
+            PRESTIGE_PERKS_CONFIG.forEach(p => {
+                const currentLvl = state.perks[p.id] || 0;
+                const cost = p.baseCost * (currentLvl + 1);
+                const isMax = currentLvl >= p.maxLvl;
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/90 border border-purple-900/40 p-3 rounded-xl flex items-center justify-between gap-3";
+                card.innerHTML = `
+                    <div>
+                        <div class="font-orbitron font-bold text-xs text-purple-300">${p.name} (Lvl ${currentLvl}/${p.maxLvl})</div>
+                        <div class="text-[10px] text-slate-300">${p.desc}</div>
+                    </div>
+                    <button data-perk="${p.id}" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-orbitron font-bold text-xs rounded-lg transition disabled:opacity-30 disabled:pointer-events-none shrink-0" ${isMax || state.darkMatter < cost ? 'disabled' : ''}>
+                        ${isMax ? 'MAX' : `${cost} DM`}
+                    </button>
+                `;
+                card.querySelector(`[data-perk="${p.id}"]`).onclick = () => {
+                    if (!isMax && state.darkMatter >= cost) {
+                        state.darkMatter -= cost;
+                        state.perks[p.id] = currentLvl + 1;
+                        sounds.playUpgrade();
+                        renderUI();
+                    }
+                };
+                perksList.appendChild(card);
+            });
+        }
+
+        /**
+         * MANUAL CLICKING & FLOATING PARTICLES
+         */
+        document.getElementById('btn-mine').onclick = (e) => {
+            sounds.playClick();
+            const clickVal = getEffectiveClickPower();
+            state.cash += clickVal;
+            state.lifetimeCash += clickVal;
+            state.totalClicks++;
+
+            // Visual Ripple
+            const ripple = document.getElementById('mine-ripple');
+            ripple.style.opacity = '1';
+            setTimeout(() => ripple.style.opacity = '0', 150);
+
+            // Get click origin
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX || (rect.left + rect.width / 2);
+            const y = e.clientY || (rect.top + rect.height / 2);
+
+            // Spawn Rock Dust Debris Particles
+            for (let i = 0; i < 5; i++) {
+                const chip = document.createElement('div');
+                chip.className = 'rock-chip';
+                const color = Math.random() > 0.4 ? '#64748b' : (Math.random() > 0.5 ? '#06b6d4' : '#f59e0b');
+                chip.style.backgroundColor = color;
+                chip.style.left = `${x}px`;
+                chip.style.top = `${y}px`;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 40 + Math.random() * 60;
+                chip.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
+                chip.style.setProperty('--dy', `${Math.sin(angle) * distance}px`);
+                
+                document.body.appendChild(chip);
+                setTimeout(() => chip.remove(), 700);
+            }
+
+            // Spawn floating +$ particle
+            const particle = document.createElement('div');
+            particle.className = 'click-particle';
+            particle.innerText = `+$${formatNumber(clickVal)}`;
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1200);
+
+            renderUI();
+        };
+
+        // Manual Click Upgrade Button
+        document.getElementById('btn-upgrade-click').onclick = () => {
+            if (state.cash >= state.clickCost) {
+                state.cash -= state.clickCost;
+                state.clickLevel = (state.clickLevel || 1) + 1;
+                state.clickPower += 1;
+                state.clickCost = Math.floor(state.clickCost * 1.6);
+                sounds.playBuy();
+                renderUI();
+            }
+        };
+
+        /**
+         * BULK BUY MODE TOGGLES
+         */
+        document.querySelectorAll('.buy-mode-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.buy-mode-btn').forEach(b => {
+                    b.classList.remove('bg-cyan-500', 'text-slate-950', 'font-bold');
+                    b.classList.add('hover:bg-slate-800', 'text-slate-300');
+                });
+                btn.classList.add('bg-cyan-500', 'text-slate-950', 'font-bold');
+                btn.classList.remove('hover:bg-slate-800', 'text-slate-300');
+                buyMode = btn.dataset.buy;
+                renderUI();
+            };
+        });
+
+        /**
+         * TAB NAVIGATION
+         */
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('bg-cyan-500', 'text-slate-950');
+                    b.classList.add('hover:bg-slate-800/80', 'text-slate-400');
+                });
+                btn.classList.add('bg-cyan-500', 'text-slate-950');
+                btn.classList.remove('hover:bg-slate-800/80', 'text-slate-400');
+
+                document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
+                document.getElementById(`tab-content-${btn.dataset.tab}`).classList.remove('hidden');
+            };
+        });
+
+        /**
+         * RANDOM GOLDEN METEOR SUPPLY DROP SYSTEM
+         */
+        function spawnSupplyMeteor() {
+            const meteor = document.createElement('div');
+            meteor.className = 'fixed z-40 supply-meteor cursor-pointer text-4xl p-2 rounded-full bg-amber-500/20 border border-amber-400/60 shadow-lg shadow-amber-500/40 animate-pulse';
+            meteor.innerText = '🌠';
+            meteor.style.top = `${Math.random() * 60 + 10}vh`;
+
+            meteor.onclick = () => {
+                sounds.playMeteor();
+                meteor.remove();
+
+                // 50% chance cash burst, 50% Frenzy multiplier
+                if (Math.random() > 0.5) {
+                    const bonus = Math.max(500, getGlobalCPS() * 30);
+                    state.cash += bonus;
+                    state.lifetimeCash += bonus;
+                    showDialog({
+                        title: '🌠 CELESTIAL METEOR CLAIMED!',
+                        message: `Extracted instant supply burst of +$${formatNumber(bonus)} credits!`
+                    });
+                } else {
+                    frenzyActive = true;
+                    frenzyTimeLeft = 20 + (state.perks['perk_frenzy'] || 0) * 5;
+                    frenzyMultiplier = 2 + (state.perks['perk_frenzy'] || 0);
+                    document.getElementById('frenzy-multiplier-text').innerText = `${frenzyMultiplier}x`;
+                    document.getElementById('frenzy-banner').classList.remove('hidden');
+                }
+                renderUI();
+            };
+
+            document.body.appendChild(meteor);
+            setTimeout(() => meteor.remove(), 12000);
+        }
+
+        // Schedule meteor every 45-90 seconds
+        setInterval(() => {
+            if (Math.random() < 0.7) spawnSupplyMeteor();
+        }, 60000);
+
+        /**
+         * PRESTIGE REBIRTH EXECUTION
+         */
+        document.getElementById('btn-rebirth').onclick = () => {
+            const potentialDM = Math.floor(15 * Math.sqrt(state.lifetimeCash / 1e7));
+            if (potentialDM <= 0) return;
+
+            showDialog({
+                title: '🌌 INITIATE GALACTIC REBIRTH?',
+                message: `You will reset all current cash and facilities to gain +${potentialDM} Dark Matter Shares (+${potentialDM * 5}% global revenue boost)!`,
+                showCancel: true,
+                onConfirm: () => {
+                    state.darkMatter += potentialDM;
+                    state.totalPrestiges++;
+                    
+                    // Reset cash & facilities
+                    const bonusCash = (state.perks['perk_grant'] || 0) * 5000;
+                    state.cash = bonusCash;
+                    state.clickPower = 1;
+                    state.clickLevel = 1;
+                    state.clickCost = 10;
+
+                    GENERATORS_CONFIG.forEach(g => {
+                        state.generators[g.id] = { level: 0, progress: 0, running: false };
+                        state.managers[g.id] = false;
+                    });
+                    UPGRADES_CONFIG.forEach(u => {
+                        state.upgrades[u.id] = false;
+                    });
+
+                    sounds.playUpgrade();
+                    renderUI();
+                }
+            });
+        };
+
+        /**
+         * LIVE SPARKLINE CANVAS GRAPH
+         */
+        const sparkCanvas = document.getElementById('sparkline');
+        const sparkCtx = sparkCanvas.getContext('2d');
+
+        function updateSparkline(cps) {
+            sparklineData.push(cps);
+            sparklineData.shift();
+
+            sparkCtx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
+            const max = Math.max(...sparklineData, 1);
+            
+            sparkCtx.beginPath();
+            sparkCtx.strokeStyle = '#38bdf8';
+            sparkCtx.lineWidth = 1.5;
+
+            sparklineData.forEach((val, i) => {
+                const x = (i / (sparklineData.length - 1)) * sparkCanvas.width;
+                const y = sparkCanvas.height - (val / max) * (sparkCanvas.height - 4) - 2;
+                if (i === 0) sparkCtx.moveTo(x, y);
+                else sparkCtx.lineTo(x, y);
+            });
+            sparkCtx.stroke();
+        }
+
+        /**
+         * GAME LOOP ENGINE (100ms Ticks)
+         */
+        let lastTick = Date.now();
+
+        setInterval(() => {
+            const now = Date.now();
+            const dt = (now - lastTick) / 1000;
+            lastTick = now;
+
+            state.timePlayed += dt;
+
+            // Update Frenzy Timer
+            if (frenzyActive) {
+                frenzyTimeLeft -= dt;
+                document.getElementById('frenzy-timer').innerText = `${Math.max(0, frenzyTimeLeft).toFixed(1)}s`;
+                if (frenzyTimeLeft <= 0) {
+                    frenzyActive = false;
+                    document.getElementById('frenzy-banner').classList.add('hidden');
+                }
+            }
+
+            // Update Generators Cycle Progress & Income Logic
+            GENERATORS_CONFIG.forEach(g => {
+                const genState = state.generators[g.id];
+                const isAutomated = state.managers[g.id];
+
+                if (genState.level > 0) {
+                    // Automated facilities are ALWAYS running
+                    if (isAutomated) {
+                        genState.running = true;
+                    }
+
+                    if (genState.running) {
+                        const speed = g.baseSpeed * Math.max(0.5, 1 - (state.perks['perk_warp'] || 0) * 0.10);
+                        genState.progress += (100 / speed) * dt;
+
+                        if (genState.progress >= 100) {
+                            // Calculate earned payout with Beacon global multiplier and Math.ceil rounding
+                            let genIncome = g.baseIncome * genState.level;
+
+                            UPGRADES_CONFIG.forEach(u => {
+                                if (u.targetGen === g.id && state.upgrades[u.id]) genIncome *= u.multiplier;
+                            });
+
+                            let globalMult = 1.0 + state.darkMatter * 0.05;
+                            globalMult *= getBeaconMultiplier();
+                            UPGRADES_CONFIG.forEach(u => { if (u.isGlobal && state.upgrades[u.id]) globalMult *= u.multiplier; });
+                            if (frenzyActive) globalMult *= frenzyMultiplier;
+
+                            const finalEarned = Math.ceil(genIncome * globalMult);
+                            state.cash += finalEarned;
+                            state.lifetimeCash += finalEarned;
+
+                            if (isAutomated) {
+                                // Continuous automation reset and immediately restart next loop!
+                                genState.progress %= 100;
+                            } else {
+                                // Manual run completed
+                                genState.progress = 0;
+                                genState.running = false;
+                            }
+                        }
+                    }
+                } else {
+                    genState.progress = 0;
+                    genState.running = false;
+                }
+            });
+
+            updateSparkline(getGlobalCPS());
+            renderUI();
+        }, 100);
+
+        /**
+         * LOCAL STORAGE SAVE & OFFLINE PROGRESS SYSTEM
+         */
+        const SAVE_KEY = 'astro_corp_tycoon_save';
+
+        function saveGame() {
+            state.lastSaveTime = Date.now();
+            localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+        }
+
+        function loadGame() {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (!raw) return;
+            try {
+                const loaded = JSON.parse(raw);
+                state = { ...state, ...loaded };
+                initInitialState();
+
+                // Calculate Offline Earnings
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - (state.lastSaveTime || now)) / 1000);
+
+                if (elapsedSeconds > 10) {
+                    const cps = getGlobalCPS();
+                    const offlineEarnings = Math.floor(cps * elapsedSeconds * 0.5); // 50% offline rate
+
+                    if (offlineEarnings > 0) {
+                        state.cash += offlineEarnings;
+                        state.lifetimeCash += offlineEarnings;
+
+                        document.getElementById('offline-cash-display').innerText = `+$${formatNumber(offlineEarnings)}`;
+                        document.getElementById('offline-time-display').innerText = `Away for ${Math.floor(elapsedSeconds / 60)}m ${elapsedSeconds % 60}s`;
+                        document.getElementById('modal-offline').classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                console.error('Save file load error:', err);
+            }
+        }
+
+        // Auto Save every 5 seconds
+        setInterval(saveGame, 5000);
+
+        document.getElementById('btn-claim-offline').onclick = () => {
+            document.getElementById('modal-offline').classList.add('hidden');
+            renderUI();
+        };
+
+        /**
+         * AUDIO & DATA MANAGEMENT MODAL HANDLERS
+         */
+        document.getElementById('btn-sound').onclick = () => {
+            const isMuted = sounds.toggleMute();
+            document.getElementById('icon-sound-on').classList.toggle('hidden', isMuted);
+            document.getElementById('icon-sound-off').classList.toggle('hidden', !isMuted);
+        };
+
+        document.getElementById('btn-stats').onclick = () => {
+            document.getElementById('stat-lifetime-cash').innerText = `$${formatNumber(state.lifetimeCash)}`;
+            document.getElementById('stat-total-clicks').innerText = state.totalClicks.toLocaleString();
+            document.getElementById('stat-total-prestiges').innerText = state.totalPrestiges;
+            document.getElementById('stat-time-played').innerText = `${Math.floor(state.timePlayed / 60)}m ${Math.floor(state.timePlayed % 60)}s`;
+            document.getElementById('modal-stats').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-close-stats').onclick = () => {
+            document.getElementById('modal-stats').classList.add('hidden');
+        };
+
+        // Export Save JSON
+        document.getElementById('btn-export-save').onclick = () => {
+            saveGame();
+            const b64 = btoa(JSON.stringify(state));
+            showDialog({
+                title: '📤 EXPORT SAVE DATA',
+                message: 'Copy your encoded save string below to back up your progress:',
+                showInput: true,
+                inputValue: b64,
+                onConfirm: () => {
+                    const inputEl = document.getElementById('dialog-input');
+                    inputEl.classList.remove('hidden');
+                    inputEl.select();
+                    try { document.execCommand('copy'); } catch (e) {}
+                    inputEl.classList.add('hidden');
+                }
+            });
+        };
+
+        // Import Save JSON
+        document.getElementById('btn-import-save').onclick = () => {
+            showDialog({
+                title: '📥 IMPORT SAVE DATA',
+                message: 'Paste your Astro-Corp save string below:',
+                showCancel: true,
+                showInput: true,
+                onConfirm: (str) => {
+                    if (str && str.trim()) {
+                        try {
+                            const parsed = JSON.parse(atob(str.trim()));
+                            state = parsed;
+                            initInitialState();
+                            saveGame();
+                            renderUI();
+                            showDialog({ title: 'SUCCESS', message: 'Save imported successfully!' });
+                        } catch (e) {
+                            showDialog({ title: 'ERROR', message: 'Invalid save string!' });
+                        }
+                    }
+                }
+            });
+        };
+
+        // Hard Reset Data
+        document.getElementById('btn-hard-reset').onclick = () => {
+            showDialog({
+                title: '⚠️ HARD RESET ALL DATA',
+                message: 'Are you sure you want to completely erase ALL corporate progress? This cannot be undone.',
+                showCancel: true,
+                onConfirm: () => {
+                    localStorage.removeItem(SAVE_KEY);
+                    location.reload();
+                }
+            });
+        };
+
+        // Initialize Game Load
+        window.onload = () => {
+            loadGame();
+            renderUI();
+        };
+    </script>
+</body>
+</html>
